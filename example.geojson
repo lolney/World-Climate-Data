@@ -1,1 +1,16 @@
-{type: 'Feature', geometry: { type: 'Point', coordinates: [138, -34]}, properties: { title: 'Adelaide|Plympton', description: ' ', 'marker-size': 'large', 'marker-color': '#BE9A6B'}}
+{
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [
+                      138,
+                      -34 
+                    ]
+                },
+                properties: {
+                    title: 'Adelaide|Plympton',
+                    description: ' ',
+                    'marker-size': 'large',
+                    'marker-color': '#BE9A6B',
+                }
+            }

@@ -1,0 +1,7 @@
+TODO:
+
+- Fix weird numbers issue (should be fixed by cutting out duplicates)
+- Can I display negative numbers/numbers above 100?
+- Proper routing - https://www.mapbox.com/mapbox.js/example/v1.0.0/markers-from-csv-custom-style/
+- Filtering by month, high, low, difference - https://www.mapbox.com/mapbox.js/example/v1.0.0/toggling-ui/
+- Refresh depending on map view

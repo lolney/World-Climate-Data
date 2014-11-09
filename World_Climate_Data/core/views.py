@@ -1,8 +1,9 @@
-import json, random
+import json, random, math
 from django.http import HttpResponse
 
 def ajax(request):
 	with open('/Users/Luke/World-Climate-Data/World_Climate_Data/core/data_with_coords.txt', 'rb') as jsonfile:
+		query = request.GET;
 		#TODO: user requests month
 		month = 0;
 
@@ -19,8 +20,16 @@ def ajax(request):
 			min_ = record['mins']['Jan']
 			max_ = record['maxes']['Jan']
 
-			temp = int(((float(min_) + 50.0) / 100.0) * 256)
-			hex_color = '#%02x%02x%02x' % (temp, 128, 256 - temp)
+			temp = float(min_) if query['min'] != 'true' else float(max_);
+
+			heatscale = int(((temp + 50.0) / 100.0) * 256)
+			hex_color = '#%02x%02x%02x' % (heatscale, 128, 256 - heatscale)
+
+
+			if query['celsius'] != 'true':
+				temp = temp * 9 / 5 + 32
+
+			symbol = str(int(max(temp,0)))
 
 			data = {
 					'type': 'Feature', 
@@ -32,9 +41,10 @@ def ajax(request):
 					'properties': 
 						{ 
 							'title': name,
-							'description': str(min_),
+							'description': str(temp),
 							'marker-size': 'large',
-							'marker-color': hex_color
+							'marker-color': hex_color,
+							"marker-symbol": symbol
 						}
 					}
 			responses.append(data);

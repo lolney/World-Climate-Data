@@ -42,7 +42,7 @@ for x in range(0, num_entries):
 		# check for duplicates
 		if len(records_list) > 0:
 			if records_list[len(records_list)-1]["WMO Station Number"] == station_number:
-				pass
+				continue
 
 		# put in new json record
 		mins_record = {}

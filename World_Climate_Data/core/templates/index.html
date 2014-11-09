@@ -7,33 +7,121 @@
     <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.css' rel='stylesheet' />
     <style>
-      body { margin:0; padding:0; }
-      #map { position:absolute; top:0; bottom:0; width:100%; }
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+            .menu-ui {
+            background:#fff;
+            position:absolute;
+            top:10px;right:10px;
+            z-index:1;
+            border-radius:3px;
+            width:120px;
+            border:1px solid rgba(0,0,0,0.4);
+        }
+        .menu-ui a {
+            font-size:13px;
+            color:#404040;
+            display:block;
+            margin:0;padding:0;
+            padding:5px 10px;
+            text-decoration:none;
+            border-bottom:1px solid rgba(0,0,0,0.25);
+            text-align:center;
+        }
+        .menu-ui a:first-child {
+            border-radius:3px 3px 0 0;
+        }
+        .menu-ui a:last-child {
+            border:none;
+            border-radius:0 0 3px 3px;
+          }
+        .menu-ui a:hover {
+            background:#f8f8f8;
+            color:#404040;
+        }
+        .menu-ui a.active {
+            background:#3887BE;
+            color:#FFF;
+        }
+        .menu-ui a.active:hover {
+            background:#3074a4;
+        }
+</style>
+
     </style>
 
     </head>
    
     <body>
-      <div id='map'></div>
+
+
+        <div id='map'></div>
+            <nav class='menu-ui'>
+              <a href='#' id='temperature' class='active'>Celsius</a>
+              <a href='#' id='minmax' class='active'>Min</a>
+            </nav>  
+        </div>
+
         <script>
             L.mapbox.accessToken = 'pk.eyJ1IjoibG9sbmV5IiwiYSI6Il9rMGRGa2cifQ.xtEz-bJjWVzaJBUK2sWBsA';
             var map = L.mapbox.map('map', 'examples.map-i86nkdio').setView([-34, 138], 1);
 
-            var xmlhttp = new XMLHttpRequest();
-            var url = "/example";
+            var celsius = true;
+            var min = true;
+            var markerLayer = L.layerGroup().addTo(map);
+            sendRequest();
 
-            xmlhttp.onreadystatechange = function() {
-                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                    var res = JSON.parse(xmlhttp.responseText);
-                    for (var i=0; i<res.length; i++){
-                        L.mapbox.featureLayer(res[i]).addTo(map);
+            temp = document.querySelector('#temperature');
+            temp.onclick = function() {
+                if (this.className === 'active') {
+                    this.className = '';
+                    celsius = false;
+                    temp.innerHTML = 'Fahrenheit'
+                    sendRequest();
+                } else {
+                    this.className = 'active';
+                    celsius = true;
+                    temp.innerHTML = 'Celsius'
+                    sendRequest();
+                }
+                return false;
+            }
+
+            minmax =  document.querySelector('#minmax');
+            minmax.onclick = function() {
+                if (this.className === 'active') {
+                    this.className = '';
+                    min = false;
+                    minmax.innerHTML = 'Max'
+                    sendRequest();
+                } else {
+                    this.className = 'active';
+                    min = true;
+                    minmax.innerHTML = 'Min'
+                    sendRequest();
+                }
+                return false;
+            }
+
+            function sendRequest(){
+
+                var xmlhttp = new XMLHttpRequest();
+                var url = "/example";
+
+                markerLayer.clearLayers();
+
+                xmlhttp.onreadystatechange = function() {
+                    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                        var res = JSON.parse(xmlhttp.responseText);
+                        for (var i=0; i<res.length; i++){
+                            var marker = L.mapbox.featureLayer(res[i]);
+                            marker.addTo(markerLayer);
+                        }
                     }
                 }
+                xmlhttp.open("GET", url + '?celsius=' + celsius + '&min=' + min, true);
+                xmlhttp.send();            
             }
-            xmlhttp.open("GET", url, true);
-            xmlhttp.send();
-            
-
 
         </script>
     </body>
