@@ -1,7 +1,20 @@
 TODO:
 
-- Fix weird numbers issue (should be fixed by cutting out duplicates)
-- Can I display negative numbers/numbers above 100?
-- Proper routing - https://www.mapbox.com/mapbox.js/example/v1.0.0/markers-from-csv-custom-style/
-- Filtering by month, high, low, difference - https://www.mapbox.com/mapbox.js/example/v1.0.0/toggling-ui/
+- Can I display negative numbers/numbers above 100? :
+	- Possible using the desktop app:
+		- https://www.mapbox.com/tilemill/docs/guides/advanced-map-design/
+	- Can create custom images:
+		- https://www.mapbox.com/mapbox.js/example/v1.0.0/custom-marker/
+	- Labels:
+		- http://stackoverflow.com/questions/13316925/simple-label-on-a-leaflet-geojson-polygon
+	- Can use divicons instead:
+		- https://www.mapbox.com/mapbox.js/example/v1.0.0/divicon/
+		- http://leafletjs.com/reference.html#divicon
+- Proper routing 
+	- : perhaps reduce complexity this way :
+	https://www.mapbox.com/mapbox.js/example/v1.0.0/markers-from-csv-custom-style/
+- Filtering by difference
 - Refresh depending on map view
+	- Filter in javascript and only make requests depending on map view from server
+	- Or: make markers shown in a particular view deterministic
+- Show graphs

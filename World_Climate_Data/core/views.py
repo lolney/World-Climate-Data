@@ -20,7 +20,7 @@ def ajax(request):
 			min_ = record['mins']['Jan']
 			max_ = record['maxes']['Jan']
 
-			temp = float(min_) if query['min'] != 'true' else float(max_);
+			temp = float(min_) if query['min'] == 'true' else float(max_);
 
 			heatscale = int(((temp + 50.0) / 100.0) * 256)
 			hex_color = '#%02x%02x%02x' % (heatscale, 128, 256 - heatscale)
