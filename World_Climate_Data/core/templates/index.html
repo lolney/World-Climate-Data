@@ -39,14 +39,15 @@
             background:#f8f8f8;
             color:#404040;
         }
-        .menu-ui a.active {
-            background:#3887BE;
-            color:#FFF;
-        }
-        .menu-ui a.active:hover {
-            background:#3074a4;
-        }
-</style>
+        .temp-icon {
+            background:#404040;
+          border:5px solid rgba(255,255,255,0.5);
+          color:#fff;
+          font-weight:bold;
+          text-align:center;
+          border-radius:50%;
+          line-height:30px;
+          }
 
     </style>
 
@@ -70,6 +71,8 @@
             var min = true;
             var markerLayer = L.layerGroup().addTo(map);
             sendRequest();
+
+            var text = 'border:5px solid rgba(255,255,255,0.5); color:#fff; font-weight:bold; text-align:center; border-radius:50%; line-height:30px;';
 
             temp = document.querySelector('#temperature');
             temp.onclick = function() {
@@ -114,8 +117,25 @@
                     if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                         var res = JSON.parse(xmlhttp.responseText);
                         for (var i=0; i<res.length; i++){
-                            var marker = L.mapbox.featureLayer(res[i]);
-                            marker.addTo(markerLayer);
+
+                            var style = document.createElement('style');
+                            style.type = 'text/css';
+                            style.innerHTML = ".temp-icon" + i + " { background: " + res[i].properties['marker-color'] + "; " + text + "}";
+                            document.getElementsByTagName('head')[0].appendChild(style);
+
+                            var myIcon = L.divIcon({className: 'temp-icon' + i, 
+                                html: res[i].properties.description, 
+                                iconSize: [40, 40],}
+                                );
+                            coords = [res[i].geometry.coordinates[1], res[i].geometry.coordinates[0]];
+
+                            L.marker(coords, {
+                                icon: myIcon, 
+                            }).addTo(markerLayer)
+                            .bindPopup(res[i].properties.title);
+                            //var marker = L.mapbox.featureLayer(res[i]);
+                            //marker.addTo(markerLayer);
+
                         }
                     }
                 }
