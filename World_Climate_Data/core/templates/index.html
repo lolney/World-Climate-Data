@@ -106,6 +106,17 @@
                 return false;
             }
 
+            function serialize(obj) {
+               var str = ['?'];
+               for(var p in obj){
+                   if (obj.hasOwnProperty(p)) {
+                       str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+                   }
+               }
+               return str.join("&");
+            }
+
+
             function sendRequest(){
 
                 var xmlhttp = new XMLHttpRequest();
@@ -113,9 +124,12 @@
 
                 markerLayer.clearLayers();
 
+                var bounds = map.getBounds();
+
                 xmlhttp.onreadystatechange = function() {
                     if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                         var res = JSON.parse(xmlhttp.responseText);
+
                         for (var i=0; i<res.length; i++){
 
                             var style = document.createElement('style');
@@ -133,14 +147,24 @@
                                 icon: myIcon, 
                             }).addTo(markerLayer)
                             .bindPopup(res[i].properties.title);
-                            //var marker = L.mapbox.featureLayer(res[i]);
-                            //marker.addTo(markerLayer);
 
                         }
                     }
                 }
-                xmlhttp.open("GET", url + '?celsius=' + celsius + '&min=' + min, true);
-                xmlhttp.send();            
+                query = {
+                    'celsius' : celsius,
+                    'min' : min,
+                    'northEast' : [bounds._northEast.lat, bounds._northEast.lng], 
+                    'southWest' : [bounds._southWest.lat, bounds._southWest.lng]
+                }
+                url =  url + serialize(query);
+                xmlhttp.open("GET", url, true);
+                xmlhttp.send(); 
+                /*
+                var featureLayer = L.mapbox.featureLayer()
+                    .loadURL('http://127.0.0.1:8001' + url)
+                    .addTo(markerLayer);
+                */
             }
 
         </script>

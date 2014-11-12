@@ -10,6 +10,7 @@ def ajax(request):
 		jsonobj = json.load(jsonfile);
 		records = jsonobj['records']
 		responses = []
+
 		# If len < threshold, cull
 		thresh = 100
 		random.shuffle(records);
