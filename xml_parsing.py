@@ -21,6 +21,7 @@ mins_records = mins_xml.getElementsByTagName('record')
 
 mi = 0;
 ma = 0;
+pk = 0;
 records_list = []
 num_entries = min(len(maxes_records),len(mins_records))
 print num_entries
@@ -35,13 +36,16 @@ for x in range(0, num_entries):
 	if max_station_name == min_station_name:
 		mi+=1
 		ma+=1
+		pk+=1
+
+		wrapper = {'model': 'World-Climate-Data.station', 'pk': pk}
 
 		station_number = max_record.getElementsByValue("WMO Station Number")
-		json_record = {"Station Name" : max_station_name, "WMO Station Number" : station_number}
+		json_record = {"StationName" : max_station_name, "WMOStationNumber" : station_number}
 
 		# check for duplicates
 		if len(records_list) > 0:
-			if records_list[len(records_list)-1]["WMO Station Number"] == station_number:
+			if records_list[len(records_list)-1]['fields']["WMOStationNumber"] == station_number:
 				continue
 
 		# put in new json record
@@ -56,7 +60,9 @@ for x in range(0, num_entries):
 
 		json_record['mins']= mins_record;
 		json_record['maxes']= maxes_record;
-		records_list.append(json_record)
+
+		wrapper['fields'] = json_record
+		records_list.append(wrapper)
 	else:
 		min_country = min_record.getElementsByValue("Country or Territory");
 		max_country = max_record.getElementsByValue("Country or Territory");
@@ -71,7 +77,8 @@ for x in range(0, num_entries):
 		else:
 			ma+=1
 
-json_records = {'records' : records_list}	
+json_records = records_list;	
+print len(records_list)
 
 with open('data.txt', 'w') as outfile:
 	json.dump(json_records, outfile)

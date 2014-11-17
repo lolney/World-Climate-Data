@@ -1,6 +1,9 @@
 TODO:
 
 - Import JSON data into database
+	- Create models and corresponding fixture
+		- Add elevation: elev_baro
+	- May have to create mins and maxes fixtures separately
 	- https://docs.djangoproject.com/en/dev/howto/initial-data/ 
 	- Make requests a query from this database
 - Proper routing 
@@ -15,4 +18,6 @@ TODO:
 		http://wiki.scipy.org/Cookbook/Matplotlib/Gridding_irregularly_spaced_data
 		- Sample elevation data and calculate temperature again, based on interpolated temperature and difference between interpolated and actual elevation
 			- http://ned.usgs.gov/
+			- API: http://ned.usgs.gov/epqs/
+			- http://en.wikipedia.org/wiki/U.S._Standard_Atmosphere
 		- Interpolate temperature again

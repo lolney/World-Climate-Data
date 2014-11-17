@@ -4,21 +4,29 @@ from operator import itemgetter
 # Parse CSV
 filename = 'master-location-identifier-database-20130801.csv'
 
-coords_list = {};
+station_list = {};
 with open(filename, 'rb') as csvfile:
 	spamreader = csv.reader(csvfile, delimiter=',')
 	coords_cols = [30,29]
 	for row in spamreader:
-		coords_list[row[11]] = list(row[i] for i in coords_cols)
+		coords = list(row[i] for i in coords_cols)
+		elevation = row[33]
+		station_list[row[11]] = {'coords' : coords, 'elevation': elevation}
 
 # Parse JSON
 with open('data.txt', 'rb') as jsonfile:
 	jsonobj = json.load(jsonfile);
 	markers = [];
-	for record in jsonobj['records']:
+	for wrapper in jsonobj:
+		record = wrapper['fields'];
 		# Search coords_list for WMO Station Number
-		coords = coords_list.get(record['WMO Station Number'], None);
-		record['coordinates'] = coords
+		station = station_list.get(record['WMOStationNumber'], None);
+		try:
+			record['coordinates'] = station['coords']
+			record['elevation'] = station['elevation']
+		except TypeError:
+			record['coordinates'] = None
+			record['elevation'] = None
 
 	with open('data_with_coords.txt', 'w') as outfile:
 		json.dump(jsonobj, outfile)

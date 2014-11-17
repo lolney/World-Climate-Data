@@ -1,14 +1,24 @@
 from django.db import models
-from django.contrib.auth.models import User as DjangoUser
+from djangotoolbox.fields import ListField, EmbeddedModelField
 
-class Poll(models.Model):
-    question = models.CharField(unique=True, max_length=200)
-    creator = models.ForeignKey('User')
-    up_votes = models.IntegerField()
-    down_votes = models.IntegerField()
+class Station(models.Model):
+    mins = models.EmbeddedModelField('Months')
+    maxes = models.EmbeddedModelField('Months')
+    elevation = models.DecimalField()
+    coordinates = models.ListField(models.FloatField())
+    StationName = models.CharField()
+    WMOStationNumber = models.IntegerField()
 
-class User(models.Model):
-    user = models.ForeignKey(DjangoUser, blank=True, null=True)
-    facebook_id = models.IntegerField(blank=True, null=True)
-    name = models.CharField(max_length=200)
-
+class Months(models.Model):
+    Jan = models.FloatField()
+    Feb = models.FloatField()
+    Mar = models.FloatField()
+    Apr = models.FloatField()
+    May = models.FloatField()
+    Jun = models.FloatField()
+    Jul = models.FloatField()
+    Aug = models.FloatField()
+    Sep = models.FloatField()
+    Oct = models.FloatField()
+    Nov = models.FloatField()
+    Dec = models.FloatField()
