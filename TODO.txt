@@ -1,6 +1,7 @@
 TODO:
 
 - Import JSON data into database
+	- https://docs.djangoproject.com/en/dev/howto/initial-data/ 
 	- Make requests a query from this database
 - Proper routing 
 - Filtering by difference
@@ -8,3 +9,10 @@ TODO:
 	- Filter in javascript and only make requests depending on map view from server
 	- Or: make markers shown in a particular view deterministic
 - Show graphs
+- Create color layer interpolated between stations
+	- Possibly more ambitious: model elevation differences via lapse rate:
+		- Interpolation of elevation, temperature between stations: 
+		http://wiki.scipy.org/Cookbook/Matplotlib/Gridding_irregularly_spaced_data
+		- Sample elevation data and calculate temperature again, based on interpolated temperature and difference between interpolated and actual elevation
+			- http://ned.usgs.gov/
+		- Interpolate temperature again
