@@ -1,0 +1,5 @@
+#!/Users/Luke/World-Climate-Data/World_Climate_Data/World_Climate_Data/bin/python
+from django.core import management
+
+if __name__ == "__main__":
+    management.execute_from_command_line()

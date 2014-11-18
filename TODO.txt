@@ -4,6 +4,8 @@ TODO:
 	- Create models and corresponding fixture
 		- Add elevation: elev_baro
 	- May have to create mins and maxes fixtures separately
+		- Suggestion here to ‘just go with dictfield’
+			- https://groups.google.com/forum/#!searchin/django-non-relational/fixture/django-non-relational/CPj7KQBs75s/2RSR6iB7WQQJ
 	- https://docs.djangoproject.com/en/dev/howto/initial-data/ 
 	- Make requests a query from this database
 - Proper routing 

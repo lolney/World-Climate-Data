@@ -1,12 +1,12 @@
 from django.db import models
-from djangotoolbox.fields import ListField, EmbeddedModelField
+from djangotoolbox.fields import ListField, DictField
 
 class Station(models.Model):
-    mins = models.EmbeddedModelField('Months')
-    maxes = models.EmbeddedModelField('Months')
-    elevation = models.DecimalField()
-    coordinates = models.ListField(models.FloatField())
-    StationName = models.CharField()
+    mins = DictField(models.FloatField())
+    maxes = DictField(models.FloatField())
+    elevation = models.DecimalField(decimal_places=5, max_digits=10)
+    coordinates = ListField(models.FloatField())
+    StationName = models.CharField(max_length=100)
     WMOStationNumber = models.IntegerField()
 
 class Months(models.Model):

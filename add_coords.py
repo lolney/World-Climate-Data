@@ -9,7 +9,10 @@ with open(filename, 'rb') as csvfile:
 	spamreader = csv.reader(csvfile, delimiter=',')
 	coords_cols = [30,29]
 	for row in spamreader:
-		coords = list(row[i] for i in coords_cols)
+		try:
+			coords = list(float(row[i]) for i in coords_cols)
+		except ValueError:
+			coords = [0,0]
 		elevation = row[33]
 		station_list[row[11]] = {'coords' : coords, 'elevation': elevation}
 
@@ -17,16 +20,20 @@ with open(filename, 'rb') as csvfile:
 with open('data.txt', 'rb') as jsonfile:
 	jsonobj = json.load(jsonfile);
 	markers = [];
-	for wrapper in jsonobj:
-		record = wrapper['fields'];
+	for record in jsonobj:
+		#record = wrapper['fields'];
+		#wrapper['pk'] = '';
 		# Search coords_list for WMO Station Number
 		station = station_list.get(record['WMOStationNumber'], None);
+		for key in record:
+			if record[key] is None:
+				record[key] = 'No name'
 		try:
 			record['coordinates'] = station['coords']
 			record['elevation'] = station['elevation']
 		except TypeError:
-			record['coordinates'] = None
-			record['elevation'] = None
+			record['coordinates'] = [0,0]
+			record['elevation'] = 0
 
-	with open('data_with_coords.txt', 'w') as outfile:
+	with open('fixtures.json', 'w') as outfile:
 		json.dump(jsonobj, outfile)

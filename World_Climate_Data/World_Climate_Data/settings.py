@@ -55,13 +55,22 @@ WSGI_APPLICATION = 'World_Climate_Data.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
+}"""
+
+DATABASES = {
+   'default' : {
+      'ENGINE' : 'django_mongodb_engine',
+      'NAME' : 'stations'
+   }
 }
+
+MONGODB_NAME = 'stations'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/

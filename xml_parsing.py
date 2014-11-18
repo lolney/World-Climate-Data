@@ -38,16 +38,17 @@ for x in range(0, num_entries):
 		ma+=1
 		pk+=1
 
-		wrapper = {'model': 'World-Climate-Data.station', 'pk': pk}
+		#wrapper = {'model': 'core.Station', 'pk': pk}
 
 		station_number = max_record.getElementsByValue("WMO Station Number")
 		json_record = {"StationName" : max_station_name, "WMOStationNumber" : station_number}
 
 		# check for duplicates
 		if len(records_list) > 0:
-			if records_list[len(records_list)-1]['fields']["WMOStationNumber"] == station_number:
+			if records_list[len(records_list)-1]["WMOStationNumber"] == station_number:
 				continue
 
+		# Need to create separate
 		# put in new json record
 		mins_record = {}
 		maxes_record = {}
@@ -61,8 +62,9 @@ for x in range(0, num_entries):
 		json_record['mins']= mins_record;
 		json_record['maxes']= maxes_record;
 
-		wrapper['fields'] = json_record
-		records_list.append(wrapper)
+		#wrapper['fields'] = json_record
+		#records_list.append(wrapper)
+		records_list.append(json_record)
 	else:
 		min_country = min_record.getElementsByValue("Country or Territory");
 		max_country = max_record.getElementsByValue("Country or Territory");
