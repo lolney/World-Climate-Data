@@ -1,13 +1,16 @@
 from django.db import models
-from djangotoolbox.fields import ListField, DictField
+from djangotoolbox.fields import ListField, EmbeddedModelField
+from django_mongodb_engine.contrib import MongoDBManager
 
 class Station(models.Model):
-    mins = DictField(models.FloatField())
-    maxes = DictField(models.FloatField())
-    elevation = models.DecimalField(decimal_places=5, max_digits=10)
+    mins = EmbeddedModelField('Months')
+    maxes = EmbeddedModelField('Months')
+    elevation = models.FloatField()
     coordinates = ListField(models.FloatField())
     StationName = models.CharField(max_length=100)
     WMOStationNumber = models.IntegerField()
+
+    objects = MongoDBManager()
 
 class Months(models.Model):
     Jan = models.FloatField()
@@ -22,3 +25,4 @@ class Months(models.Model):
     Oct = models.FloatField()
     Nov = models.FloatField()
     Dec = models.FloatField()
+    

@@ -1,38 +1,46 @@
 import json, random, math
 from django.http import HttpResponse
+from models import Station
 
-def ajax(request):
-	with open('/Users/Luke/World-Climate-Data/World_Climate_Data/core/data_with_coords.txt', 'rb') as jsonfile:
-		query = request.GET;
-		#TODO: user requests month
-		month = 0;
+def calcColor(temp):
+	heatscale = int(((temp + 50.0) / 100.0) * 256)
+	hex_color = '#%02x%02x%02x' % (heatscale, 128, 256 - heatscale)
+	return hex_color
 
-		jsonobj = json.load(jsonfile);
-		records = jsonobj['records']
-		responses = []
+def main_display(request):
+	query = request.GET;
+	# Do geospatial query
+	month = query['month']
+	here = [float(x.encode('ascii', 'ignore')) for x in query['coordinates'].split(',')]
+	NE = [float(x) for x in query['NE'].split(',')]
+	SW = [float(x) for x in query['SW'].split(',')]
+	NE = [(x / abs(x)) * (abs(x) % 180) for x in NE]
+	SW = [(x / abs(x)) * (abs(x) % 180) for x in SW]
 
-		# If len < threshold, cull
-		thresh = 100
-		random.shuffle(records);
-		for record in records[0:thresh]:
+	try:
+		print NE, SW
+		qset = Station.objects.raw_query({'coordinates' : {'$within': { '$box' : [SW, NE]}}}).order_by('StationName')[:100]
+		print len(qset)
+	except:
+		print 'Query error'
+	# Process responce
+	print qset;
+	responses = [];
+	for record in qset:
+		coords = record.coordinates 
+		name = record.StationName
+		min_ = record.mins.Jan
+		max_ = record.maxes.Jan
 
-			coords = record['coordinates'] if record['coordinates'] is not None else [0,0]
-			name = record['Station Name'] if record['Station Name'] is not None else 'No name'
-			min_ = record['mins']['Jan']
-			max_ = record['maxes']['Jan']
+		
+		temp = float(min_) if query['min'] == 'true' else float(max_);
 
-			temp = float(min_) if query['min'] == 'true' else float(max_);
-
-			heatscale = int(((temp + 50.0) / 100.0) * 256)
-			hex_color = '#%02x%02x%02x' % (heatscale, 128, 256 - heatscale)
-
-
-			if query['celsius'] != 'true':
+		hex_color = calcColor(temp);
+		if query['celsius'] != 'true':
 				temp = temp * 9 / 5 + 32
+		symbol = str(int(max(temp,0)))
 
-			symbol = str(int(max(temp,0)))
-
-			data = {
+		data = {
 					'type': 'Feature', 
 					'geometry':
 						{
@@ -48,5 +56,5 @@ def ajax(request):
 							"marker-symbol": symbol
 						}
 					}
-			responses.append(data);
-		return HttpResponse(json.dumps(responses), content_type = "application/json")
+		responses.append(data);
+	return HttpResponse(json.dumps(responses), content_type = "application/json")

@@ -40,7 +40,7 @@ for x in range(0, num_entries):
 
 		#wrapper = {'model': 'core.Station', 'pk': pk}
 
-		station_number = max_record.getElementsByValue("WMO Station Number")
+		station_number = int(max_record.getElementsByValue("WMO Station Number"))
 		json_record = {"StationName" : max_station_name, "WMOStationNumber" : station_number}
 
 		# check for duplicates
@@ -56,8 +56,8 @@ for x in range(0, num_entries):
 		months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 		for month in months:
-			mins_record[month] = min_record.getElementsByValue(month)
-			maxes_record[month] = max_record.getElementsByValue(month)
+			mins_record[month] = float(min_record.getElementsByValue(month))
+			maxes_record[month] = float(max_record.getElementsByValue(month))
 
 		json_record['mins']= mins_record;
 		json_record['maxes']= maxes_record;

@@ -65,7 +65,15 @@
 
         <script>
             L.mapbox.accessToken = 'pk.eyJ1IjoibG9sbmV5IiwiYSI6Il9rMGRGa2cifQ.xtEz-bJjWVzaJBUK2sWBsA';
-            var map = L.mapbox.map('map', 'examples.map-i86nkdio').setView([-34, 138], 1);
+            var map = L.mapbox.map('map', 'examples.map-i86nkdio', {
+                // These options apply to the tile layer in the map.
+                tileLayer: {
+                    // This map option disables world wrapping. by default, it is false.
+                    continuousWorld: false,
+                    // This option disables loading tiles outside of the world bounds.
+                    noWrap: true
+                }
+            }).setView([0, 0], 2);
 
             var celsius = true;
             var min = true;
@@ -116,11 +124,16 @@
                return str.join("&");
             }
 
+            map.on('dragend', function(e) {
+                if(e.distance > 100) 
+                    sendRequest();
+            });
+
 
             function sendRequest(){
 
                 var xmlhttp = new XMLHttpRequest();
-                var url = "/example";
+                var url = "display";
 
                 markerLayer.clearLayers();
 
@@ -128,6 +141,7 @@
 
                 xmlhttp.onreadystatechange = function() {
                     if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                        console.log(xmlhttp.responseText);
                         var res = JSON.parse(xmlhttp.responseText);
 
                         for (var i=0; i<res.length; i++){
@@ -152,12 +166,14 @@
                     }
                 }
                 query = {
-                    'celsius' : celsius,
                     'min' : min,
-                    'northEast' : [bounds._northEast.lat, bounds._northEast.lng], 
-                    'southWest' : [bounds._southWest.lat, bounds._southWest.lng]
+                    'NE' : [bounds._northEast.lng, bounds._northEast.lat], 
+                    'SW' : [bounds._southWest.lng, bounds._southWest.lat],
+                    'coordinates' : [map.getCenter().lng, map.getCenter().lat],
+                    'month': 'Jan',
+                    'celsius': celsius
                 }
-                url =  url + serialize(query);
+                url = url + serialize(query);
                 xmlhttp.open("GET", url, true);
                 xmlhttp.send(); 
                 /*

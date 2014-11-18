@@ -13,8 +13,15 @@ with open(filename, 'rb') as csvfile:
 			coords = list(float(row[i]) for i in coords_cols)
 		except ValueError:
 			coords = [0,0]
-		elevation = row[33]
-		station_list[row[11]] = {'coords' : coords, 'elevation': elevation}
+		try:
+			elevation = float(row[33])
+		except ValueError:
+			elevation = 0
+		try:
+			station_num = int(row[11])
+		except:
+			station_num = 0;
+		station_list[station_num] = {'coords' : coords, 'elevation': elevation}
 
 # Parse JSON
 with open('data.txt', 'rb') as jsonfile:
