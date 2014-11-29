@@ -3,12 +3,9 @@ TODO:
 - Filtering by difference
 	- Queries on sub-objects: https://groups.google.com/forum/#!topic/django-non-relational/kCLOcI7nHS0
 		- Station.objects.raw_query({'mins.Jan':{'$lte':-10}})
-		- Station.objects.raw_query({'location' : {'$within': { '$center' : [[0,0], 7]}}})[0].location.longitude
-	- Possibly switch representation of location to this:
-	http://django-mongodb-engine.readthedocs.org/en/latest/topics/lowerlevel.html#raw-queries-and-updates
-	- http://docs.mongoengine.org/guide/defining-documents.html
 — More sophisticated refreshing: only query for new areas of screen
 - Augment Data, especially in central US (NWS?)
+	- Possible changes to data: change Months model to list, replace station names with .csv names
 - Show graphs
 - Create color layer interpolated between stations
 	- Possibly more ambitious: model elevation differences via lapse rate:

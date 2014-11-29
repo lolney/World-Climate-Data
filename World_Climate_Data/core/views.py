@@ -14,8 +14,6 @@ def main_display(request):
 	here = [float(x.encode('ascii', 'ignore')) for x in query['coordinates'].split(',')]
 	NE = [float(x) for x in query['NE'].split(',')]
 	SW = [float(x) for x in query['SW'].split(',')]
-	NE = [(x / abs(x)) * (abs(x) % 180) for x in NE]
-	SW = [(x / abs(x)) * (abs(x) % 180) for x in SW]
 
 	try:
 		print NE, SW
