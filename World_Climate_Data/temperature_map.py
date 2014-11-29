@@ -1,8 +1,12 @@
+""" Creates a map of temperature predictions based on the standard atmospheric model 
+and interpolation between stations"""
+
 from django.conf import settings
 if not settings.configured:
     settings.configure()
 
 import urllib, itertools, os, json
+from threading import Thread
 from scipy.interpolate import griddata
 from core.models import Station
 import numpy as np
@@ -42,50 +46,81 @@ def avgTempMatrix(res, rect, month, category):
 
 	return elevation, temperature;
 
-	
-def elevationMatrix(res, rect):	
-
-	minlng, minlat, maxlng, maxlat = rect[0][0], rect[0][1], rect[1][0], rect[1][1];
-
-	# Query elevation for locations inside this rect
-	lnggrid, latgrid = np.mgrid[minlng:maxlng:res,
-								 minlat:maxlat:res];
-
+def doQueries(lnggrid, latgrid, pointsList, valuesList, index):
 	points = np.zeros((lnggrid.flatten().shape[0], 2));
 	values = np.zeros_like(lnggrid.flatten());
 
 	i = 0;
-	for lng, lat in zip(lnggrid.flatten(), latgrid.flatten()):
+	it = iter(zip(lnggrid.flatten(), latgrid.flatten()));
+	while True:
+		try:
+			lng, lat = it.next();
 
-		query = {
-			'x' : lng,
-			'y' : lat,
-			'units' : 'Feet',
-			'output' : 'json'
-		};
+			query = {
+				'x' : lng,
+				'y' : lat,
+				'units' : 'Feet',
+				'output' : 'json'
+			};
 
-		qs = urllib.urlencode(query);
-		response_str = urllib.urlopen("http://ned.usgs.gov/epqs/pqs.php?" + qs).read();
-		response = json.loads(response_str);
+			points[i,:] = np.array([lng, lat]);
 
-		elevation = float(response['USGS_Elevation_Point_Query_Service']['Elevation_Query']['Elevation']);
+			qs = urllib.urlencode(query);
+			response_str = urllib.urlopen("http://ned.usgs.gov/epqs/pqs.php?" + qs).read(); 
+			response = json.loads(response_str);
+			elevation = float(response['USGS_Elevation_Point_Query_Service']['Elevation_Query']['Elevation']);
+			if elevation != -1000000: # error code
+				values[i] = elevation;
+			else:
+				values[i] = 0;
+			i+=1;
 
-		points[i,:] = np.array([lng, lat]);
-		if elevation != -1000000: # error code
-			values[i] = elevation;
-		else:
-			values[i] = 0;
-		i+=1;
+		except (StopIteration, KeyboardInterrupt):
+			break;
+		except:
+			print 'Error; trying again';
+			continue;
+		
 
 		if(i % 100 == 0):
 			print i
 
+	pointsList[index] = points;
+	valuesList[index] = values;
+
+def elevationMatrix(res, rect):	
+
+	minlng, minlat, maxlng, maxlat = rect[0][0], rect[0][1], rect[1][0], rect[1][1];
+
+	nt = 16;
+	pointsList = [None] * nt;
+	valuesList = [None] * nt;
+	threads = [None] * nt;
+
+	for i in range(nt):	
+		# Query elevation for locations inside this rect
+		dlng = maxlng - minlng;
+		dlat = maxlat - minlat;
+		lnggrid, latgrid = np.mgrid[minlng + i*dlng/nt: minlng + (i+1)*dlng/nt:res/nt,
+									minlat:maxlat:res];
+		threads[i] = Thread(target=doQueries, args=(lnggrid, latgrid, pointsList, valuesList, i));
+		threads[i].start();
+
+	lnggrid, latgrid = np.mgrid[minlng:maxlng:res,
+								minlat:maxlat:res];
+
+	points, values = np.zeros((0,2)), np.zeros(0);
+	for i, thread in enumerate(threads):
+		thread.join();
+		points = np.concatenate((points, pointsList[i]));
+		values = np.concatenate((values, valuesList[i]));
+	print points
+	print values
+
 	# Nearest neighbor interpolate to fill out matrix
 	grid = griddata(points, values, (lnggrid, latgrid), method='linear');
 
-	print grid;
-
-	plt.imshow(grid.T, extent=(0,1,0,1), origin='lower');
+	plt.imshow(grid.T, extent=(minlng,maxlng,minlat,maxlat), origin='lower');
 	plt.show();
 
 	return grid;
@@ -105,7 +140,7 @@ def modeledTemperature(interpolated_elev, interpolated_temp, actual_elev):
 months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 c = ['mins','maxes']
 res = 1000j;
-rect = [[-126.604574, 24.885026], [-65.256916, 50.0]]; # bounding rect for US
+rect = [[-125.5, 24.0], [-66, 50.0]]; # bounding rect for US
 
 directory = 'maps';
 if not os.path.exists(directory):

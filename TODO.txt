@@ -5,7 +5,8 @@ TODO:
 		- Station.objects.raw_query({'mins.Jan':{'$lte':-10}})
 — More sophisticated refreshing: only query for new areas of screen
 - Augment Data, especially in central US (NWS?)
-	- Possible changes to data: change Months model to list, replace station names with .csv names
+	- Parse NOAA temperature data and add to db
+	- Possible changes to data: replace station names with .csv names
 - Show graphs
 - Create color layer interpolated between stations
 	- Possibly more ambitious: model elevation differences via lapse rate:
@@ -16,3 +17,5 @@ TODO:
 			- API: http://ned.usgs.gov/epqs/
 			- http://en.wikipedia.org/wiki/U.S._Standard_Atmosphere
 		- Interpolate temperature again
+	- Tile layer and backend to handle
+		-https://www.mapbox.com/mapbox.js/api/v1.6.1/l-mapbox-tilelayer/
