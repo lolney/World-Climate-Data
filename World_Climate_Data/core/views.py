@@ -21,14 +21,13 @@ def main_display(request):
 		print len(qset)
 	except:
 		print 'Query error'
-	# Process responce
-	print qset;
+	# Process response
 	responses = [];
 	for record in qset:
 		coords = record.coordinates 
 		name = record.StationName
-		min_ = record.mins.Jan
-		max_ = record.maxes.Jan
+		min_ = getattr(record.mins, month)
+		max_ = getattr(record.maxes, month)
 
 		
 		temp = float(min_) if query['min'] == 'true' else float(max_);
