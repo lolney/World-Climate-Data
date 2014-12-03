@@ -1,16 +1,20 @@
-""" Creates a map of temperature predictions based on the standard atmospheric model 
-and interpolation between stations"""
+""" Creates a map of temperature predictions based on the standard atmospheric model and interpolation between stations"""
 
 from django.conf import settings
-if not settings.configured:
-    settings.configure()
+settings.configure(MONGODB_NAME='stations', DATABASES={
+   'default' : {
+      'ENGINE' : 'django_mongodb_engine',
+      'NAME' : 'stations'
+   }
+})
 
-import urllib, itertools, os, json
+import urllib, itertools, os, json, gc
 from threading import Thread
 from scipy.interpolate import griddata
 from core.models import Station
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import datetime as time
 
 # For each month / Each of min / max:
 # Prepare average matrix:
@@ -23,11 +27,13 @@ def avgTempMatrix(res, rect, month, category):
 	# Query average temp for locations inside this rect
 	qset = Station.objects.raw_query({'coordinates' : {'$within': { '$box' : rect}}});
 
-	lnggrid, latgrid = np.mgrid[minlng:maxlng:res,
-								 minlat:maxlat:res];
+	lnggrid, latgrid = np.mgrid[minlng:maxlng:res*5,
+								 minlat:maxlat:res*5];
 
-	points = np.zeros((lnggrid.flatten().shape[0], 2));
-	values = np.zeros_like(lnggrid.flatten());
+
+	points = np.zeros((len(qset), 2));
+	elevs = np.zeros(len(qset));
+	temps = np.zeros(len(qset));
 
 	for i, record in enumerate(qset):
 		r = getattr(record, category);
@@ -40,11 +46,17 @@ def avgTempMatrix(res, rect, month, category):
 		elevs[i] = elev;
 		temps[i] = temp;
 
+	#points = map(lambda x : x.coordinates, qset);
+	#temps = map(lambda x : getattr(getattr(x, category), month), qset);
+	#elevs = map(lambda x : x.elevation, qset);
+
 	# Nearest neighbor interpolate to fill out matrix (both elevation and temperature)
-	elevation 	= griddata(points, elev, (lnggrid, latgrid), method='nearest');
-	temperature = griddata(points, temp, (lnggrid, latgrid), method='nearest');
+	temperature = griddata(points, temps, (lnggrid, latgrid), method='linear');
+	elevation 	= griddata(points, elevs, (lnggrid, latgrid), method='linear');
+	# TODO: fill in holes
 
 	return elevation, temperature;
+
 
 def doQueries(lnggrid, latgrid, pointsList, valuesList, index):
 	points = np.zeros((lnggrid.flatten().shape[0], 2));
@@ -97,6 +109,9 @@ def elevationMatrix(res, rect):
 	valuesList = [None] * nt;
 	threads = [None] * nt;
 
+	# This takes an astronomically long time (at about .5 seconds per request), but there doesn't
+	# seem to be a better API for doing this
+	start = time.now();
 	for i in range(nt):	
 		# Query elevation for locations inside this rect
 		dlng = maxlng - minlng;
@@ -106,8 +121,8 @@ def elevationMatrix(res, rect):
 		threads[i] = Thread(target=doQueries, args=(lnggrid, latgrid, pointsList, valuesList, i));
 		threads[i].start();
 
-	lnggrid, latgrid = np.mgrid[minlng:maxlng:res,
-								minlat:maxlat:res];
+	lnggrid, latgrid = np.mgrid[minlng:maxlng:res*5,
+								minlat:maxlat:res*5];
 
 	points, values = np.zeros((0,2)), np.zeros(0);
 	for i, thread in enumerate(threads):
@@ -119,6 +134,7 @@ def elevationMatrix(res, rect):
 
 	# Nearest neighbor interpolate to fill out matrix
 	grid = griddata(points, values, (lnggrid, latgrid), method='linear');
+	print time.now()-start;
 
 	plt.imshow(grid.T, extent=(minlng,maxlng,minlat,maxlat), origin='lower');
 	plt.show();
@@ -133,27 +149,43 @@ def modeledTemperature(interpolated_elev, interpolated_temp, actual_elev):
 	deltaE = actual_elev - interpolated_elev;
 		# Standard atmospheric model: temp = expectedTemp + -0.0019812 * deltaE (in feet)
 		#									 				-0.0065 * deltaE (in meters)
-	temp = interpolated_temp - (0.0019812 * deltaE);
+	temp = interpolated_temp - (0.0065 * deltaE);
+
 	return temp;
+
 
 
 months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 c = ['mins','maxes']
-res = 1000j;
-rect = [[-125.5, 24.0], [-66, 50.0]]; # bounding rect for US
+res = 2000j;
+rect = [[-125.5, 24.0], [-95.5, 50.0]];#[[-125.5, 24.0], [-66, 50.0]]; # bounding rect for US
 
 directory = 'maps';
 if not os.path.exists(directory):
     os.makedirs(directory)
 
+with open('maps/elevationMap1.npz') as w:#, open('maps/elevationMapEast.npz') as e:
+	west = np.load(w);
+	#actual_elev = np.concatenate((np.load(w), np.load(e)));
+
+"""
 actual_elev = elevationMatrix(res, rect);
-with open('maps/elevationMap.npz', 'w+') as fd:
+with open('maps/elevationMapEast.npz', 'w+') as fd:
 	np.save(fd, actual_elev);
+
 """
 for month, cat in itertools.product(months, c):
-	interpolated_elev, interpolated_temp = avgTempMatrix(res, rect, month, category);
+	gc.collect();
+	interpolated_elev, interpolated_temp = avgTempMatrix(res, rect, month, cat);
+	gc.collect();
 	result = modeledTemperature(interpolated_elev, interpolated_temp, actual_elev);
-"""
+	with open('maps/' + str(month) + '_' + str(cat) + '.npz', 'w+') as fd:
+		np.save(fd, result);
+
+	#plt.imshow(np.flipud(result.T), origin='lower');
+	#plt.show();
+
+
 
 
 

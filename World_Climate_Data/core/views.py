@@ -1,13 +1,22 @@
 import json, random, math
 from django.http import HttpResponse
 from models import Station
+import matplotlib as plt
+import matplotlib.cm as cm
 
 def calcColor(temp):
-	heatscale = int(((temp + 50.0) / 100.0) * 256)
-	hex_color = '#%02x%02x%02x' % (heatscale, 128, 256 - heatscale)
-	return hex_color
+	norm = plt.colors.Normalize(vmin=-50, vmax=50)
+
+	m = cm.ScalarMappable(norm=norm, cmap=cm.jet)
+	rgb = m.to_rgba(temp)[0:3];
+	rgb = map(lambda x : int(x * 255), rgb);
+	return '#%02x%02x%02x' % tuple(rgb);
+
+def toFahrenheit(temp):
+	return round(temp * 9 / 5 + 32, 1);
 
 def main_display(request):
+	
 	query = request.GET;
 	# Do geospatial query
 	month = query['month']
@@ -34,8 +43,7 @@ def main_display(request):
 
 		hex_color = calcColor(temp);
 		if query['celsius'] != 'true':
-				temp = temp * 9 / 5 + 32
-		symbol = str(int(max(temp,0)))
+				temp = toFahrenheit(temp)
 
 		data = {
 					'type': 'Feature', 
@@ -50,7 +58,7 @@ def main_display(request):
 							'description': str(temp),
 							'marker-size': 'large',
 							'marker-color': hex_color,
-							"marker-symbol": symbol
+							"marker-symbol": str(int(max(temp,0)))
 						}
 					}
 		responses.append(data);

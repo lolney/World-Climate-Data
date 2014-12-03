@@ -18,4 +18,5 @@ TODO:
 			- http://en.wikipedia.org/wiki/U.S._Standard_Atmosphere
 		- Interpolate temperature again
 	- Tile layer and backend to handle
-		-https://www.mapbox.com/mapbox.js/api/v1.6.1/l-mapbox-tilelayer/
+		- http://stackoverflow.com/questions/5960405/convert-a-single-large-image-overlay-to-tiles-for-google-maps
+		- http://leafletjs.com/examples/quick-start.html
