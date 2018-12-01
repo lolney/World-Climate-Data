@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8" />
+    <title>Global Climate</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+            .menu-ui {
+            background:#fff;
+            position:absolute;
+            top:10px;right:10px;
+            z-index:1;
+            border-radius:3px;
+            width:120px;
+            border:1px solid rgba(0,0,0,0.4);
+        }
+        .menu-ui a {
+            font-size:13px;
+            color:#404040;
+            display:block;
+            margin:0;padding:0;
+            padding:5px 10px;
+            text-decoration:none;
+            border-bottom:1px solid rgba(0,0,0,0.25);
+            text-align:center;
+        }
+        .menu-ui a:first-child {
+            border-radius:3px 3px 0 0;
+        }
+        .menu-ui a:last-child {
+            border:none;
+            border-radius:0 0 3px 3px;
+          }
+        .menu-ui a:hover {
+            background:#f8f8f8;
+            color:#404040;
+        }
+        .temp-icon {
+            background:#404040;
+          border:5px solid rgba(255,255,255,0.5);
+          color:#fff;
+          font-weight:bold;
+          text-align:center;
+          border-radius:50%;
+          line-height:30px;
+          }
+
+    </style>
+
+    </head>
+   
+    <body>
+
+
+        <div id='map'></div>
+            <nav class='menu-ui'>
+              <a href='#' id='temperature' class='active'>Celsius</a>
+              <a href='#' id='minmax' class='active'>Min</a>
+            </nav>  
+        </div>
+
+        <script>
+            L.mapbox.accessToken = 'pk.eyJ1IjoibG9sbmV5IiwiYSI6Il9rMGRGa2cifQ.xtEz-bJjWVzaJBUK2sWBsA';
+            var map = L.mapbox.map('map', 'examples.map-i86nkdio', {
+                // These options apply to the tile layer in the map.
+                tileLayer: {
+                    // This map option disables world wrapping. by default, it is false.
+                    continuousWorld: false,
+                    // This option disables loading tiles outside of the world bounds.
+                    noWrap: true
+                }
+            }).setView([0, 0], 2);
+
+            var celsius = true;
+            var min = true;
+            var markerLayer = L.layerGroup().addTo(map);
+            sendRequest();
+
+            var text = 'border:5px solid rgba(255,255,255,0.5); color:#fff; font-weight:bold; text-align:center; border-radius:50%; line-height:30px;';
+
+            temp = document.querySelector('#temperature');
+            temp.onclick = function() {
+                if (this.className === 'active') {
+                    this.className = '';
+                    celsius = false;
+                    temp.innerHTML = 'Fahrenheit'
+                    sendRequest();
+                } else {
+                    this.className = 'active';
+                    celsius = true;
+                    temp.innerHTML = 'Celsius'
+                    sendRequest();
+                }
+                return false;
+            }
+
+            minmax =  document.querySelector('#minmax');
+            minmax.onclick = function() {
+                if (this.className === 'active') {
+                    this.className = '';
+                    min = false;
+                    minmax.innerHTML = 'Max'
+                    sendRequest();
+                } else {
+                    this.className = 'active';
+                    min = true;
+                    minmax.innerHTML = 'Min'
+                    sendRequest();
+                }
+                return false;
+            }
+
+            function serialize(obj) {
+               var str = ['?'];
+               for(var p in obj){
+                   if (obj.hasOwnProperty(p)) {
+                       str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+                   }
+               }
+               return str.join("&");
+            }
+
+            map.on('dragend', function(e) {
+                if(e.distance > 100) 
+                    sendRequest();
+            });
+
+
+            function sendRequest(){
+
+                var xmlhttp = new XMLHttpRequest();
+                var url = "display";
+
+                markerLayer.clearLayers();
+
+                var bounds = map.getBounds();
+
+                xmlhttp.onreadystatechange = function() {
+                    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                        console.log(xmlhttp.responseText);
+                        var res = JSON.parse(xmlhttp.responseText);
+
+                        for (var i=0; i<res.length; i++){
+
+                            var style = document.createElement('style');
+                            style.type = 'text/css';
+                            style.innerHTML = ".temp-icon" + i + " { background: " + res[i].properties['marker-color'] + "; " + text + "}";
+                            document.getElementsByTagName('head')[0].appendChild(style);
+
+                            var myIcon = L.divIcon({className: 'temp-icon' + i, 
+                                html: res[i].properties.description, 
+                                iconSize: [40, 40],}
+                                );
+                            coords = [res[i].geometry.coordinates[1], res[i].geometry.coordinates[0]];
+
+                            L.marker(coords, {
+                                icon: myIcon, 
+                            }).addTo(markerLayer)
+                            .bindPopup(res[i].properties.title);
+
+                        }
+                    }
+                }
+                query = {
+                    'min' : min,
+                    'NE' : [bounds._northEast.lng, bounds._northEast.lat], 
+                    'SW' : [bounds._southWest.lng, bounds._southWest.lat],
+                    'coordinates' : [map.getCenter().lng, map.getCenter().lat],
+                    'month': 'Jan',
+                    'celsius': celsius
+                }
+                url = url + serialize(query);
+                xmlhttp.open("GET", url, true);
+                xmlhttp.send(); 
+                /*
+                var featureLayer = L.mapbox.featureLayer()
+                    .loadURL('http://127.0.0.1:8001' + url)
+                    .addTo(markerLayer);
+                */
+            }
+
+        </script>
+    </body>
+</html>
